@@ -1,0 +1,645 @@
+<title>Stichpunkt-Werkstatt</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap">
+<style>
+/* Layout: one working column like a Schulheft page; card chips on top, sortable strips below, a three-part report frame at the end */
+:root {
+  --bg: #eef1f5;
+  --paper: #ffffff;
+  --ink: #1d2a3a;
+  --muted: #5b6878;
+  --line: #d5dce5;
+  --marker: #ffe066;
+  --marker-ink: #5a4500;
+  --accent: #2d5fa8;
+  --einl: #3b74c4;  --einl-bg: #e5eefb;
+  --haupt: #d9822b; --haupt-bg: #fcefe0;
+  --schluss: #3f9a5b; --schluss-bg: #e3f3e7;
+  --ok: #2e8b4e; --ok-bg: #e2f4e8;
+  --bad: #c8463d; --bad-bg: #fbe6e4;
+  --shadow: 0 1px 2px rgba(29,42,58,.08), 0 2px 8px rgba(29,42,58,.06);
+  --f-display: "Bricolage Grotesque", "Trebuchet MS", system-ui, sans-serif;
+  --f-body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #121820; --paper: #1b2330; --ink: #e6ebf2; --muted: #9aa7b8; --line: #2f3a4a;
+  --marker: #e9c84a; --marker-ink: #2a2000; --accent: #7fa8e8;
+  --einl: #78a6ec; --einl-bg: #1d2b44; --haupt: #f0a65a; --haupt-bg: #3a2a18; --schluss: #6cc58a; --schluss-bg: #1a3324;
+  --ok: #6cc58a; --ok-bg: #1a3324; --bad: #f08a80; --bad-bg: #3d1f1d;
+  --shadow: 0 1px 2px rgba(0,0,0,.4); color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #121820; --paper: #1b2330; --ink: #e6ebf2; --muted: #9aa7b8; --line: #2f3a4a;
+  --marker: #e9c84a; --marker-ink: #2a2000; --accent: #7fa8e8;
+  --einl: #78a6ec; --einl-bg: #1d2b44; --haupt: #f0a65a; --haupt-bg: #3a2a18; --schluss: #6cc58a; --schluss-bg: #1a3324;
+  --ok: #6cc58a; --ok-bg: #1a3324; --bad: #f08a80; --bad-bg: #3d1f1d;
+  --shadow: 0 1px 2px rgba(0,0,0,.4); color-scheme: dark; }
+
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 17px; line-height: 1.45; }
+.wrap { max-width: 980px; margin: 0 auto; padding-inline: 16px; padding-block: 24px 64px; display: grid; gap: 22px; }
+h1, h2, h3 { font-family: var(--f-display); text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(30px, 6vw, 44px); font-weight: 800; letter-spacing: -.01em; }
+h1 mark { background: linear-gradient(transparent 55%, var(--marker) 55%); color: inherit; padding: 0 .1em; }
+h2 { font-size: 24px; font-weight: 800; }
+.lead { color: var(--muted); max-width: 62ch; margin: 6px 0 0; }
+
+.eyebrow { font-size: 12px; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); font-weight: 700; margin-bottom: 8px; }
+.chip-groups { display: grid; gap: 14px; }
+.chip-group { display: grid; gap: 6px; }
+.group-label { font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+.level { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; padding: 2px 8px; border-radius: 999px; }
+.level.leicht { background: var(--ok-bg); color: var(--ok); border: 1px solid var(--ok); }
+.level.normal { background: var(--einl-bg); color: var(--accent); border: 1px solid var(--accent); }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip.leicht b { color: var(--ok); }
+details.help { background: var(--bg); border-radius: 10px; padding: 10px 14px; font-size: 15px; }
+details.help summary { cursor: pointer; font-weight: 700; }
+.help-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 4px 18px; margin: 10px 0 6px; padding: 0; list-style: none; }
+.help-grid li { display: block; }
+.help-grid b { white-space: nowrap; }
+.help-teile { margin: 6px 0 0; color: var(--muted); }
+.chip { font: inherit; font-size: 15px; border: 1.5px solid var(--line); background: var(--paper); color: var(--ink); border-radius: 999px; padding: 7px 14px; cursor: pointer; display: inline-flex; gap: 8px; align-items: center; }
+.chip b { font-family: var(--f-display); color: var(--accent); }
+.chip:hover { border-color: var(--accent); }
+.chip[aria-pressed="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.chip[aria-pressed="true"] b { color: var(--marker); }
+.chip .done { font-size: 13px; color: var(--ok); }
+.chip[aria-pressed="true"] .done { color: var(--marker); }
+
+.steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.step { background: var(--paper); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; display: flex; gap: 10px; align-items: flex-start; font-size: 15px; }
+.step .n { flex: none; width: 26px; height: 26px; border-radius: 50%; background: var(--marker); color: var(--marker-ink); font-weight: 700; display: grid; place-items: center; font-size: 14px; }
+@media (max-width: 720px) { .steps { grid-template-columns: 1fr; } }
+
+.legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 14px; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.sw { width: 14px; height: 14px; border-radius: 3px; display: inline-block; }
+
+.board { background: var(--paper); border-radius: 14px; box-shadow: var(--shadow); padding: 20px; display: grid; gap: 14px; }
+.board-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; align-items: baseline; }
+.board-head p { margin: 4px 0 0; color: var(--muted); font-size: 15px; }
+
+ol.items { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.item { display: grid; grid-template-columns: auto auto minmax(0, 1fr) auto auto; gap: 10px; align-items: center; background: var(--paper); border: 1.5px solid var(--line); border-left-width: 6px; border-radius: 10px; padding: 8px 10px; }
+.item[data-teil="E"] { border-left-color: var(--einl); background: var(--einl-bg); }
+.item[data-teil="H"] { border-left-color: var(--haupt); background: var(--haupt-bg); }
+.item[data-teil="S"] { border-left-color: var(--schluss); background: var(--schluss-bg); }
+.handle { cursor: grab; color: var(--muted); font-size: 20px; line-height: 1; padding: 6px 2px; user-select: none; touch-action: none; }
+.handle:active { cursor: grabbing; }
+.pos { font-family: var(--f-display); font-weight: 800; font-size: 18px; width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--ink); display: grid; place-items: center; font-variant-numeric: tabular-nums; }
+.text { font-style: italic; min-width: 0; }
+.ctrls { display: flex; gap: 6px; flex-wrap: wrap; }
+select { font: inherit; font-size: 15px; padding: 6px 8px; border-radius: 8px; border: 1.5px solid var(--line); background: var(--paper); color: var(--ink); }
+select.ok { border-color: var(--ok); background: var(--ok-bg); }
+select.bad { border-color: var(--bad); background: var(--bad-bg); }
+.move { display: flex; flex-direction: column; gap: 2px; }
+.move button { font: inherit; font-size: 12px; line-height: 1; width: 30px; height: 22px; border: 1px solid var(--line); background: var(--paper); color: var(--ink); border-radius: 6px; cursor: pointer; }
+.move button:hover:not(:disabled) { border-color: var(--accent); }
+.move button:disabled { opacity: .3; cursor: default; }
+.item.ord-ok .pos { background: var(--ok); border-color: var(--ok); color: var(--paper); }
+.item.ord-bad .pos { background: var(--bad); border-color: var(--bad); color: var(--paper); }
+.item.dragging { box-shadow: 0 10px 28px rgba(0,0,0,.25); outline: 2px solid var(--accent); z-index: 50; cursor: grabbing; pointer-events: none; transform: scale(1.02); }
+.placeholder { list-style: none; border: 2px dashed var(--accent); border-radius: 10px; background: transparent; }
+body:has(.dragging) { user-select: none; }
+@media (max-width: 640px) {
+  .item { grid-template-columns: auto auto minmax(0, 1fr) auto; }
+  .ctrls { grid-column: 2 / -1; grid-row: 2; }
+  .move { grid-column: 4; grid-row: 1; }
+}
+
+.actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.btn { font: inherit; font-weight: 700; font-size: 16px; border-radius: 10px; padding: 10px 18px; cursor: pointer; border: 2px solid var(--ink); background: var(--paper); color: var(--ink); }
+.btn.primary { background: var(--ink); color: var(--paper); }
+.btn:hover { transform: translateY(-1px); }
+button:focus-visible, select:focus-visible, .chip:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+.result { border-radius: 10px; padding: 12px 16px; font-size: 16px; display: grid; gap: 4px; }
+.result.good { background: var(--ok-bg); border: 1.5px solid var(--ok); }
+.result.mid { background: var(--haupt-bg); border: 1.5px solid var(--haupt); }
+.score { display: flex; flex-wrap: wrap; gap: 6px 18px; font-variant-numeric: tabular-nums; font-size: 15px; color: var(--muted); }
+.score strong { color: var(--ink); }
+
+.frame { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.part { border-radius: 10px; padding: 12px 14px; border-top: 5px solid; min-width: 0; }
+.part h3 { font-size: 17px; margin-bottom: 2px; }
+.part .q { font-size: 13px; color: var(--muted); margin-bottom: 8px; }
+.part ul { margin: 0; padding-left: 18px; font-size: 15px; display: grid; gap: 3px; }
+.part .empty { font-size: 14px; color: var(--muted); font-style: italic; }
+.part.E { border-color: var(--einl); background: var(--einl-bg); }
+.part.H { border-color: var(--haupt); background: var(--haupt-bg); }
+.part.S { border-color: var(--schluss); background: var(--schluss-bg); }
+@media (max-width: 720px) { .frame { grid-template-columns: 1fr; } }
+
+details.muster { background: var(--paper); border: 1.5px dashed var(--line); border-radius: 10px; padding: 12px 16px; }
+details.muster summary { cursor: pointer; font-weight: 700; }
+.muster .bericht { max-width: 66ch; margin-top: 10px; }
+.muster .bericht p { margin: 0 0 10px; }
+.muster .bericht .ttl { font-family: var(--f-display); font-weight: 800; font-size: 19px; }
+.muster .tag { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; font-weight: 700; padding: 2px 6px; border-radius: 4px; margin-right: 6px; vertical-align: 2px; }
+.tag.E { background: var(--einl); color: var(--paper); }
+.tag.H { background: var(--haupt); color: var(--paper); }
+.tag.S { background: var(--schluss); color: var(--paper); }
+.hint { font-size: 14px; color: var(--muted); }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } .btn:hover { transform: none; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Deutsch · Klasse 7 · Der Bericht</div>
+    <h1>Stichpunkt-<mark>Werkstatt</mark></h1>
+    <p class="lead">Bring die Stichpunkte in die richtige Reihenfolge. Entscheide für jeden Stichpunkt, welche W-Frage er beantwortet und ob er in die Einleitung, den Hauptteil oder den Schluss gehört.</p>
+  </header>
+
+  <section aria-label="Karte wählen">
+    <div class="eyebrow">Karte wählen</div>
+    <div class="chip-groups" id="chips"></div>
+  </section>
+
+  <section class="steps" aria-label="So geht's">
+    <div class="step"><span class="n">1</span><span><b>Ordnen:</b> Ziehe die Stichpunkte am Griff ⠿ an die richtige Stelle – oder nutze die Pfeile ▲▼.</span></div>
+    <div class="step"><span class="n">2</span><span><b>W-Frage:</b> Wähle, welche Frage der Stichpunkt beantwortet: Wann? Wo? Wer? Was? Wie? Warum? Folgen?</span></div>
+    <div class="step"><span class="n">3</span><span><b>Teil:</b> Einleitung, Hauptteil oder Schluss? Dann auf <b>Prüfen</b> klicken.</span></div>
+  </section>
+
+  <section class="board">
+    <div class="board-head">
+      <div>
+        <h2 id="cardTitle"></h2>
+        <p id="cardInfo"></p>
+      </div>
+      <div class="legend">
+        <span><i class="sw" style="background:var(--einl)"></i>Einleitung</span>
+        <span><i class="sw" style="background:var(--haupt)"></i>Hauptteil</span>
+        <span><i class="sw" style="background:var(--schluss)"></i>Schluss</span>
+      </div>
+    </div>
+
+    <details class="help" id="help">
+      <summary>Hilfe: Welche W-Frage passt?</summary>
+      <ul class="help-grid">
+        <li><span>Datum, Tag, Uhrzeit →</span> <b>Wann?</b></li>
+        <li><span>Ort, Raum, Straße →</span> <b>Wo?</b></li>
+        <li><span>Name, Person, Tier →</span> <b>Wer?</b></li>
+        <li><span>Das passiert →</span> <b>Was?</b></li>
+        <li><span>So läuft es ab →</span> <b>Wie?</b></li>
+        <li><span>Der Grund (weil …) →</span> <b>Warum?</b></li>
+        <li><span>Danach, Verletzung, Schaden →</span> <b>Welche Folgen?</b></li>
+      </ul>
+      <p class="help-teile"><b>Einleitung:</b> Wann? Wo? Wer? · <b>Hauptteil:</b> der Ablauf · <b>Schluss:</b> die Folgen</p>
+    </details>
+
+    <ol class="items" id="items"></ol>
+
+    <div class="actions">
+      <button class="btn primary" id="check" type="button">Prüfen</button>
+      <button class="btn" id="shuffle" type="button">Neu starten</button>
+      <button class="btn" id="solve" type="button">Lösung zeigen</button>
+    </div>
+    <div id="result" role="status" aria-live="polite" hidden></div>
+  </section>
+
+  <section aria-label="Bericht-Gerüst">
+    <div class="eyebrow">Dein Bericht-Gerüst</div>
+    <div class="frame" id="frame"></div>
+  </section>
+
+  <details class="muster" id="muster">
+    <summary>Musterbericht anzeigen</summary>
+    <div class="bericht" id="bericht"></div>
+  </details>
+</div>
+
+<script>
+// Each item: [text, rank (equal ranks are interchangeable), accepted W-Fragen, accepted parts]
+const CARDS = [
+ // ---------- Leichte Karten: wenige Stichpunkte, einfache Sprache ----------
+ { id:'1', level:'leicht', title:'Milch verschüttet', items:[
+  ['Dienstag, 09.07.2024, 9 Uhr',1,['Wann'],['E']],
+  ['Klassenzimmer der 5b',1,['Wo'],['E']],
+  ['Paula, 11 Jahre',1,['Wer'],['E']],
+  ['Paula stieß gegen ihre Milchflasche',2,['Was','Wie','Warum'],['H']],
+  ['Milch lief über den Tisch',3,['Was','Wie'],['H']],
+  ['Paula wischte alles auf',4,['Folgen','Wie'],['S']]],
+  bericht:['Milch im Klassenzimmer verschüttet',
+   ['E','Am Dienstag, den 9. Juli 2024, verschüttete die 11-jährige Paula um 9 Uhr im Klassenzimmer der 5b ihre Milch.'],
+   ['H','Paula stieß aus Versehen gegen ihre Milchflasche. Die Milch lief über den Tisch.'],
+   ['S','Paula wischte alles auf.']]},
+ { id:'2', level:'leicht', title:'Handy verloren', items:[
+  ['Dienstag, 16.04.2024, 13 Uhr',1,['Wann'],['E']],
+  ['Pausenhof der Mittelschule',1,['Wo'],['E']],
+  ['Sara, 13 Jahre',1,['Wer'],['E']],
+  ['Handy fiel aus der Jackentasche',2,['Was','Wie','Warum'],['H']],
+  ['Hausmeister fand das Handy',3,['Was','Wie'],['H']],
+  ['Hausmeister brachte das Handy ins Sekretariat',4,['Wie','Was'],['H']],
+  ['Sara holte ihr Handy ab',5,['Folgen'],['S']]],
+  bericht:['Schülerin verliert ihr Handy',
+   ['E','Am Dienstag, den 16. April 2024, verlor die 13-jährige Sara um 13 Uhr auf dem Pausenhof der Mittelschule ihr Handy.'],
+   ['H','Das Handy fiel aus ihrer Jackentasche. Der Hausmeister fand das Handy. Er brachte es ins Sekretariat.'],
+   ['S','Sara holte ihr Handy im Sekretariat ab.']]},
+ { id:'3', level:'leicht', title:'Katze im Klassenzimmer', items:[
+  ['Freitag, 07.06.2024, 8 Uhr',1,['Wann'],['E']],
+  ['Klassenzimmer der 7a',1,['Wo'],['E']],
+  ['eine Katze',1,['Wer'],['E']],
+  ['Fenster war offen',2,['Warum','Wie'],['H']],
+  ['Katze sprang ins Klassenzimmer',3,['Was','Wie'],['H']],
+  ['Lehrerin trug die Katze nach draußen',4,['Wie','Was'],['H']],
+  ['Unterricht ging weiter',5,['Folgen'],['S']]],
+  bericht:['Katze besucht die Klasse 7a',
+   ['E','Am Freitag, den 7. Juni 2024, kam um 8 Uhr eine Katze in das Klassenzimmer der 7a.'],
+   ['H','Das Fenster war offen. Die Katze sprang durch das Fenster ins Klassenzimmer. Die Lehrerin trug die Katze vorsichtig nach draußen.'],
+   ['S','Danach ging der Unterricht weiter.']]},
+ { id:'4', level:'leicht', title:'Sturz mit dem Fahrrad', items:[
+  ['Montag, 11.03.2024, 7.45 Uhr',1,['Wann'],['E']],
+  ['Schulweg in der Bahnhofstraße',1,['Wo'],['E']],
+  ['Ali, 12 Jahre',1,['Wer'],['E']],
+  ['Ali fuhr über einen Stein',2,['Warum','Wie'],['H']],
+  ['Ali fiel vom Fahrrad',3,['Was','Wie'],['H']],
+  ['Schulsanitäter klebte ein Pflaster auf das Knie',4,['Wie','Was'],['H']],
+  ['Knie aufgeschürft',5,['Folgen'],['S']],
+  ['Ali konnte am Unterricht teilnehmen',6,['Folgen'],['S']]],
+  bericht:['Schüler stürzt mit dem Fahrrad',
+   ['E','Am Montag, den 11. März 2024, stürzte um 7.45 Uhr der 12-jährige Ali auf dem Schulweg in der Bahnhofstraße mit dem Fahrrad.'],
+   ['H','Ali fuhr über einen Stein. Deshalb fiel er vom Fahrrad. In der Schule klebte ihm der Schulsanitäter ein Pflaster auf das Knie.'],
+   ['S','Ali hatte ein aufgeschürftes Knie. Er konnte trotzdem am Unterricht teilnehmen.']]},
+ { id:'5', level:'leicht', title:'Teller in der Mensa', items:[
+  ['Mittwoch, 24.04.2024, 12.15 Uhr',1,['Wann'],['E']],
+  ['Mensa der Schule',1,['Wo'],['E']],
+  ['Leon, 12 Jahre',1,['Wer'],['E']],
+  ['Leon stolperte über eine Schultasche',2,['Warum','Wie'],['H']],
+  ['Teller fiel auf den Boden und zerbrach',3,['Was','Wie'],['H']],
+  ['Küchenhilfe kehrte die Scherben auf',4,['Wie','Was'],['H']],
+  ['niemand verletzt',5,['Folgen'],['S']],
+  ['Leon bekam ein neues Essen',5,['Folgen'],['S']]],
+  bericht:['Teller in der Mensa zerbrochen',
+   ['E','Am Mittwoch, den 24. April 2024, fiel dem 12-jährigen Leon um 12.15 Uhr in der Mensa der Schule ein Teller herunter.'],
+   ['H','Leon stolperte über eine Schultasche. Dabei fiel sein Teller auf den Boden und zerbrach. Eine Küchenhilfe kehrte die Scherben auf.'],
+   ['S','Niemand wurde verletzt. Leon bekam ein neues Essen.']]},
+ { id:'6', level:'leicht', title:'Ball gegen das Fenster', items:[
+  ['Donnerstag, 02.05.2024, 10 Uhr',1,['Wann'],['E']],
+  ['Pausenhof',1,['Wo'],['E']],
+  ['Jonas und Emil aus der 6b',1,['Wer'],['E']],
+  ['die Jungen spielten Fußball',2,['Was','Wie'],['H','E']],
+  ['Jonas schoss den Ball zu fest',3,['Warum','Wie'],['H']],
+  ['Ball flog gegen ein Fenster',4,['Was','Wie'],['H']],
+  ['Fensterscheibe ging kaputt',5,['Folgen'],['S']],
+  ['Hausmeister reparierte das Fenster',6,['Folgen'],['S']]],
+  bericht:['Fußball zerbricht Fensterscheibe',
+   ['E','Am Donnerstag, den 2. Mai 2024, ging um 10 Uhr auf dem Pausenhof eine Fensterscheibe kaputt. Beteiligt waren Jonas und Emil aus der Klasse 6b.'],
+   ['H','Die beiden Jungen spielten Fußball. Jonas schoss den Ball zu fest. Der Ball flog gegen ein Fenster.'],
+   ['S','Die Fensterscheibe ging kaputt. Der Hausmeister reparierte das Fenster.']]},
+ { id:'7', level:'leicht', title:'Ball an der Nase', items:[
+  ['Montag, 17.06.2024, 9.30 Uhr',1,['Wann'],['E']],
+  ['Turnhalle der Mittelschule',1,['Wo'],['E']],
+  ['Mia, 12 Jahre',1,['Wer'],['E']],
+  ['Mia spielte Völkerball',2,['Was','Wie'],['H']],
+  ['Ball traf Mia an der Nase',3,['Was','Wie'],['H']],
+  ['Nase blutete',4,['Folgen','Wie','Was'],['H','S']],
+  ['Sportlehrer kühlte die Nase',5,['Wie','Was'],['H']],
+  ['Mia ruhte sich auf der Bank aus',6,['Folgen'],['S']]],
+  bericht:['Schülerin im Sportunterricht verletzt',
+   ['E','Am Montag, den 17. Juni 2024, wurde die 12-jährige Mia um 9.30 Uhr in der Turnhalle der Mittelschule von einem Ball getroffen.'],
+   ['H','Mia spielte Völkerball. Dabei traf sie ein Ball an der Nase. Ihre Nase blutete. Der Sportlehrer kühlte die Nase.'],
+   ['S','Mia ruhte sich danach auf der Bank aus.']]},
+ // ---------- Schwerere Karten: viele Stichpunkte ----------
+ { id:'A', title:'Feuer in der Schulküche', items:[
+  ['Dienstag, 12.03.2024, 10.30 Uhr',1,['Wann'],['E']],
+  ['Mittelschule am Park, Schulküche',1,['Wo'],['E']],
+  ['Klasse 7b im Kochunterricht',1,['Wer','Was'],['E']],
+  ['Pfanne mit Öl zu lange auf der heißen Herdplatte',2,['Warum','Wie'],['H']],
+  ['Öl in der Pfanne fing Feuer',3,['Was','Wie'],['H']],
+  ['Lehrerin Frau Maier legte einen Deckel auf die Pfanne',4,['Wie','Was','Wer'],['H']],
+  ['Feuer sofort erstickt',5,['Wie','Was'],['H']],
+  ['Rauchmelder löste Alarm aus',6,['Wie','Was'],['H']],
+  ['ganze Schule verließ das Gebäude',7,['Wie','Was','Folgen'],['H']],
+  ['Feuerwehr kontrollierte die Küche',8,['Wie','Was'],['H']],
+  ['niemand verletzt',9,['Folgen'],['S']],
+  ['nach 30 Minuten zurück in die Klassenzimmer',10,['Folgen'],['S']]],
+  bericht:['Feuer in der Schulküche',
+   ['E','Am Dienstag, den 12. März 2024, kam es um 10.30 Uhr in der Schulküche der Mittelschule am Park zu einem kleinen Brand. Die Klasse 7b hatte gerade Kochunterricht.'],
+   ['H','Eine Pfanne mit Öl stand zu lange auf der heißen Herdplatte. Dabei fing das Öl Feuer. Die Lehrerin, Frau Maier, legte sofort einen Deckel auf die Pfanne und erstickte so das Feuer. Trotzdem löste der Rauchmelder Alarm aus. Deshalb verließ die ganze Schule das Gebäude. Die Feuerwehr kontrollierte anschließend die Küche.'],
+   ['S','Niemand wurde verletzt. Nach 30 Minuten durften alle wieder in ihre Klassenzimmer zurück.']]},
+ { id:'B', title:'Hund im Schulbus', items:[
+  ['Donnerstag, 18.04.2024, 7.20 Uhr',1,['Wann'],['E']],
+  ['Schulbus Linie 5 Richtung Schulzentrum',1,['Wo'],['E']],
+  ['kleiner brauner Hund sprang in den Bus',2,['Was','Wer'],['E']],
+  ['kein Besitzer zu sehen',3,['Wie','Warum'],['H']],
+  ['Busfahrer hielt an der Haltestelle „Marktplatz“',4,['Wie','Was'],['H']],
+  ['Schülerinnen der 7a hielten den Hund fest',5,['Wie','Was','Wer'],['H']],
+  ['Halsband mit Telefonnummer',6,['Wie'],['H']],
+  ['Busfahrer rief die Besitzerin an',7,['Wie','Was'],['H']],
+  ['Besitzerin holte den Hund ab',8,['Wie','Was'],['H']],
+  ['Hund war aus dem Garten entlaufen',8,['Warum'],['H']],
+  ['Schüler kamen 10 Minuten zu spät',9,['Folgen'],['S']]],
+  bericht:['Hund fährt im Schulbus mit',
+   ['E','Am Donnerstag, den 18. April 2024, sprang um 7.20 Uhr ein kleiner brauner Hund in den Schulbus der Linie 5 Richtung Schulzentrum.'],
+   ['H','Ein Besitzer war nicht zu sehen. Deshalb hielt der Busfahrer an der Haltestelle „Marktplatz“ an. Schülerinnen der Klasse 7a hielten den Hund fest. Am Halsband fanden sie eine Telefonnummer. Der Busfahrer rief die Besitzerin an. Kurz darauf holte sie den Hund ab. Er war aus ihrem Garten entlaufen.'],
+   ['S','Die Schüler kamen 10 Minuten zu spät zum Unterricht.']]},
+ { id:'C', title:'Fahrrad gestohlen', items:[
+  ['Montag, 06.05.2024, zwischen 8 und 13 Uhr',1,['Wann'],['E']],
+  ['Fahrradständer der Mittelschule Lindenweg',1,['Wo'],['E']],
+  ['blaues Mountainbike gestohlen',1,['Was'],['E']],
+  ['Besitzer: 14-jähriger Jonas Weber',1,['Wer'],['E']],
+  ['Fahrrad war abgeschlossen',2,['Wie'],['H']],
+  ['Schloss aufgebrochen',3,['Wie','Was'],['H']],
+  ['Jonas meldete den Diebstahl im Sekretariat',4,['Wie','Was'],['H']],
+  ['Hausmeister fand das Schloss im Gebüsch',5,['Wie','Was'],['H']],
+  ['Polizei nahm Anzeige auf',6,['Folgen'],['S']],
+  ['Polizei sucht Zeugen',7,['Folgen'],['S']]],
+  bericht:['Fahrrad an der Schule gestohlen',
+   ['E','Am Montag, den 6. Mai 2024, wurde zwischen 8 und 13 Uhr am Fahrradständer der Mittelschule Lindenweg ein blaues Mountainbike gestohlen. Es gehörte dem 14-jährigen Jonas Weber.'],
+   ['H','Jonas hatte sein Fahrrad abgeschlossen. Der Täter brach das Schloss auf und nahm das Fahrrad mit. Jonas meldete den Diebstahl im Sekretariat. Der Hausmeister fand das aufgebrochene Schloss im Gebüsch.'],
+   ['S','Die Polizei nahm eine Anzeige auf. Sie sucht nun Zeugen.']]},
+ { id:'D', title:'Schüler im Tiergarten vermisst', items:[
+  ['Freitag, 14.06.2024',1,['Wann'],['E']],
+  ['Klassenausflug der 7c in den Tiergarten Nürnberg',1,['Wo','Wer','Was'],['E']],
+  ['Treffpunkt um 13 Uhr am Ausgang',2,['Wie','Wann'],['H']],
+  ['12-jähriger Tim fehlte',3,['Was','Wer'],['H']],
+  ['Lehrkräfte suchten 20 Minuten',4,['Wie','Was'],['H']],
+  ['Durchsage über Lautsprecher',5,['Wie','Was'],['H']],
+  ['Tim bei der Delfinlagune gefunden',6,['Was','Wie'],['H']],
+  ['hatte die Uhrzeit vergessen',7,['Warum'],['H']],
+  ['Tim unverletzt',8,['Folgen'],['S']],
+  ['Bus fuhr 30 Minuten später ab',9,['Folgen'],['S']]],
+  bericht:['Schüler im Tiergarten vermisst',
+   ['E','Am Freitag, den 14. Juni 2024, machte die Klasse 7c einen Ausflug in den Tiergarten Nürnberg.'],
+   ['H','Um 13 Uhr sollten sich alle am Ausgang treffen. Dabei fehlte der 12-jährige Tim. Die Lehrkräfte suchten 20 Minuten lang nach ihm. Anschließend baten sie um eine Durchsage über den Lautsprecher. Kurz darauf fanden sie Tim bei der Delfinlagune. Er hatte die Uhrzeit vergessen.'],
+   ['S','Tim war unverletzt. Der Bus fuhr 30 Minuten später als geplant ab.']]},
+ { id:'E', title:'Wespenstich beim Sportfest', items:[
+  ['Mittwoch, 10.07.2024, 11 Uhr',1,['Wann'],['E']],
+  ['Sportplatz der Mittelschule Sonnenfeld',1,['Wo'],['E']],
+  ['Bundesjugendspiele',1,['Was','Wo'],['E']],
+  ['13-jährige Lea Schmid',1,['Wer'],['E']],
+  ['Lea trank aus einer offenen Limonadendose',2,['Wie','Was'],['H']],
+  ['Wespe saß in der Dose',3,['Warum','Wie'],['H']],
+  ['Wespe stach Lea in die Lippe',4,['Was','Wie'],['H']],
+  ['Lippe schwoll stark an',5,['Wie','Folgen'],['H']],
+  ['Sportlehrer kühlte den Stich mit Eis',6,['Wie','Was'],['H']],
+  ['Schulsanitäter rief den Rettungsdienst',7,['Wie','Was'],['H']],
+  ['Notärztin untersuchte Lea',8,['Wie','Was'],['H']],
+  ['keine Allergie, Lea durfte nach Hause',9,['Folgen'],['S']]],
+  bericht:['Wespenstich bei den Bundesjugendspielen',
+   ['E','Am Mittwoch, den 10. Juli 2024, wurde um 11 Uhr bei den Bundesjugendspielen auf dem Sportplatz der Mittelschule Sonnenfeld die 13-jährige Lea Schmid von einer Wespe gestochen.'],
+   ['H','Lea trank in einer Pause aus einer offenen Limonadendose. Dabei bemerkte sie nicht, dass eine Wespe in der Dose saß. Die Wespe stach Lea in die Lippe. Die Lippe schwoll sofort stark an. Der Sportlehrer kühlte den Stich mit Eis. Ein Schulsanitäter rief den Rettungsdienst. Kurz darauf untersuchte eine Notärztin das Mädchen.'],
+   ['S','Lea hatte keine Allergie. Sie durfte anschließend nach Hause gehen.']]},
+ { id:'F', title:'Auffahrunfall vor der Schule', items:[
+  ['Montag, 23.09.2024, 7.40 Uhr',1,['Wann'],['E']],
+  ['Schulstraße vor der Mittelschule Lindenweg',1,['Wo'],['E']],
+  ['Auffahrunfall zwischen zwei Autos',1,['Was'],['E']],
+  ['Mutter hielt im Halteverbot, um ihren Sohn aussteigen zu lassen',2,['Wie','Warum','Wer'],['H']],
+  ['nachfolgender Autofahrer war abgelenkt',3,['Warum'],['H']],
+  ['Autofahrer bremste zu spät',4,['Wie','Warum'],['H']],
+  ['fuhr auf das stehende Auto auf',5,['Was','Wie'],['H']],
+  ['Schüler war schon ausgestiegen',6,['Wie'],['H']],
+  ['Polizei nahm den Unfall auf',7,['Wie','Was','Folgen'],['H','S']],
+  ['niemand verletzt',8,['Folgen'],['S']],
+  ['Sachschaden von etwa 3000 Euro',8,['Folgen'],['S']],
+  ['Stau in der Schulstraße, mehrere Schüler kamen zu spät',9,['Folgen'],['S']]],
+  bericht:['Auffahrunfall vor der Schule',
+   ['E','Am Montag, den 23. September 2024, kam es um 7.40 Uhr in der Schulstraße vor der Mittelschule Lindenweg zu einem Auffahrunfall zwischen zwei Autos.'],
+   ['H','Eine Mutter hielt im Halteverbot an, um ihren Sohn aussteigen zu lassen. Der nachfolgende Autofahrer war abgelenkt und bremste zu spät. Deshalb fuhr er auf das stehende Auto auf. Der Schüler war zu diesem Zeitpunkt schon ausgestiegen. Die Polizei nahm den Unfall auf.'],
+   ['S','Niemand wurde verletzt. Es entstand ein Sachschaden von etwa 3000 Euro. In der Schulstraße bildete sich ein Stau, und mehrere Schüler kamen zu spät zum Unterricht.']]},
+ { id:'G', title:'Sturz im Skilager', items:[
+  ['Dienstag, 06.02.2024, 14.30 Uhr',1,['Wann'],['E']],
+  ['Skilager der Klasse 7a am Spitzingsee',1,['Wo','Was'],['E']],
+  ['12-jähriger Paul Meier',1,['Wer'],['E']],
+  ['Paul fuhr auf der blauen Piste',2,['Wie','Wo'],['H']],
+  ['Paul fuhr zu schnell',3,['Warum'],['H']],
+  ['verlor in einer Kurve das Gleichgewicht',4,['Wie','Was'],['H']],
+  ['Sturz in den Schnee',5,['Was','Wie'],['H']],
+  ['Skilehrer leistete Erste Hilfe',6,['Wie','Was'],['H']],
+  ['Bergwacht brachte Paul ins Tal',7,['Wie','Was'],['H']],
+  ['Arzt stellte einen gebrochenen Unterarm fest',8,['Folgen'],['S']],
+  ['Eltern holten Paul ab',9,['Folgen'],['S']]],
+  bericht:['Schüler verletzt sich im Skilager',
+   ['E','Am Dienstag, den 6. Februar 2024, verunglückte um 14.30 Uhr der 12-jährige Paul Meier beim Skilager der Klasse 7a am Spitzingsee.'],
+   ['H','Paul fuhr auf der blauen Piste. Dabei war er zu schnell unterwegs. In einer Kurve verlor er das Gleichgewicht und stürzte in den Schnee. Der Skilehrer leistete sofort Erste Hilfe. Anschließend brachte die Bergwacht Paul ins Tal.'],
+   ['S','Ein Arzt stellte einen gebrochenen Unterarm fest. Pauls Eltern holten ihn ab.']]},
+ { id:'H', title:'Wasserrohrbruch in der Schule', items:[
+  ['Donnerstag, 14.11.2024, 8.15 Uhr',1,['Wann'],['E']],
+  ['Mittelschule am Park, Toiletten im Erdgeschoss',1,['Wo'],['E']],
+  ['Wasserrohrbruch',1,['Was'],['E']],
+  ['Schüler der 5a bemerkte Wasser auf dem Gang',2,['Wie','Wer','Was'],['H']],
+  ['Schüler meldete es dem Hausmeister Herrn Brandl',3,['Wie','Was'],['H']],
+  ['Hausmeister drehte das Wasser ab',4,['Wie','Was'],['H']],
+  ['altes Rohr war geplatzt',5,['Warum'],['H']],
+  ['drei Klassenzimmer im Erdgeschoss überschwemmt',6,['Folgen','Was'],['H','S']],
+  ['Handwerker reparierten das Rohr',7,['Wie','Was'],['H']],
+  ['drei Klassen hatten Unterricht in der Aula',8,['Folgen'],['S']],
+  ['Toiletten zwei Tage gesperrt',8,['Folgen'],['S']]],
+  bericht:['Wasserrohrbruch an der Mittelschule am Park',
+   ['E','Am Donnerstag, den 14. November 2024, kam es um 8.15 Uhr in den Toiletten im Erdgeschoss der Mittelschule am Park zu einem Wasserrohrbruch.'],
+   ['H','Ein Schüler der Klasse 5a bemerkte Wasser auf dem Gang. Er meldete es sofort dem Hausmeister, Herrn Brandl. Der Hausmeister drehte das Wasser ab. Dabei stellte er fest, dass ein altes Rohr geplatzt war. Trotzdem waren schon drei Klassenzimmer im Erdgeschoss überschwemmt. Handwerker reparierten das Rohr noch am selben Tag.'],
+   ['S','Die drei Klassen hatten Unterricht in der Aula. Die Toiletten blieben zwei Tage gesperrt.']]},
+];
+
+const WQ = ['Wann','Wo','Wer','Was','Wie','Warum','Folgen'];
+const WQ_LABEL = { Wann:'Wann?', Wo:'Wo?', Wer:'Wer?', Was:'Was?', Wie:'Wie?', Warum:'Warum?', Folgen:'Welche Folgen?' };
+const TEIL = { E:'Einleitung', H:'Hauptteil', S:'Schluss' };
+const solved = new Set();
+
+const $ = s => document.querySelector(s);
+const elItems = $('#items');
+let card, state; // state: array of {i, w, t}
+
+function shuffled(n) {
+  const ranks = card.items.map(x => x[1]);
+  for (let tries = 0; tries < 50; tries++) {
+    const a = [...Array(n).keys()];
+    for (let i = n - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+    const inOrder = a.every((v, k) => k === 0 || ranks[a[k - 1]] <= ranks[v]);
+    if (!inOrder) return a;
+  }
+  return [...Array(n).keys()].reverse();
+}
+
+function selectHTML(kind, idx) {
+  const opts = kind === 'w'
+    ? ['<option value="">W-Frage …</option>', ...WQ.map(k => `<option value="${k}">${WQ_LABEL[k]}</option>`)]
+    : ['<option value="">Teil …</option>', ...Object.entries(TEIL).map(([k, v]) => `<option value="${k}">${v}</option>`)];
+  return `<select id="${kind}-${card.id}-${idx}" data-kind="${kind}" aria-label="${kind === 'w' ? 'W-Frage' : 'Teil des Berichts'}">${opts.join('')}</select>`;
+}
+
+function render() {
+  elItems.innerHTML = state.map((s, pos) => {
+    const it = card.items[s.i];
+    return `<li class="item" data-i="${s.i}" data-teil="${s.t}">
+      <span class="handle" aria-hidden="true" title="Ziehen">⠿</span>
+      <span class="pos">${pos + 1}</span>
+      <span class="text">${it[0]}</span>
+      <span class="ctrls">${selectHTML('w', s.i)}${selectHTML('t', s.i)}</span>
+      <span class="move"><button type="button" data-dir="-1" aria-label="nach oben">▲</button><button type="button" data-dir="1" aria-label="nach unten">▼</button></span>
+    </li>`;
+  }).join('');
+  elItems.querySelectorAll('.item').forEach(li => {
+    const s = state.find(x => x.i == li.dataset.i);
+    li.querySelector('[data-kind="w"]').value = s.w;
+    li.querySelector('[data-kind="t"]').value = s.t;
+  });
+  renumber(); renderFrame();
+}
+
+function renumber() {
+  const lis = elItems.querySelectorAll('.item');
+  lis.forEach((li, k) => {
+    li.querySelector('.pos').textContent = k + 1;
+    li.querySelector('[data-dir="-1"]').disabled = k === 0;
+    li.querySelector('[data-dir="1"]').disabled = k === lis.length - 1;
+  });
+}
+
+function clearMarks() {
+  $('#result').hidden = true;
+  elItems.querySelectorAll('.item').forEach(li => li.classList.remove('ord-ok', 'ord-bad'));
+  elItems.querySelectorAll('select').forEach(s => s.classList.remove('ok', 'bad'));
+}
+
+function syncFromDOM() {
+  const order = [...elItems.querySelectorAll('.item')].map(li => +li.dataset.i);
+  state = order.map(i => state.find(s => s.i === i));
+  renumber(); clearMarks(); renderFrame();
+}
+
+function renderFrame() {
+  const qs = { E:'Wann? Wo? Wer? Was?', H:'Wie? Warum? – der Ablauf', S:'Welche Folgen?' };
+  $('#frame').innerHTML = ['E', 'H', 'S'].map(k => {
+    const list = state.filter(s => s.t === k).map(s => `<li>${card.items[s.i][0]}</li>`).join('');
+    return `<div class="part ${k}"><h3>${TEIL[k]}</h3><div class="q">${qs[k]}</div>${list ? `<ul>${list}</ul>` : '<div class="empty">Noch nichts zugeordnet.</div>'}</div>`;
+  }).join('');
+}
+
+function loadCard(c) {
+  card = c;
+  document.querySelectorAll('.chip').forEach(b => b.setAttribute('aria-pressed', b.dataset.id === c.id));
+  $('#cardTitle').textContent = `Karte ${c.id} – ${c.title}`;
+  const lv = c.level || 'normal';
+  $('#cardInfo').innerHTML = `<span class="level ${lv}">${lv === 'leicht' ? 'leicht' : 'schwerer'}</span> ${c.items.length} Stichpunkte`;
+  $('#help').open = lv === 'leicht';
+  state = shuffled(c.items.length).map(i => ({ i, w: '', t: '' }));
+  render(); clearMarks();
+  const b = c.bericht;
+  $('#bericht').innerHTML = `<p class="ttl">${b[0]}</p>` + b.slice(1).map(([k, t]) => `<p><span class="tag ${k}">${TEIL[k]}</span>${t}</p>`).join('');
+  $('#muster').open = false;
+  try { localStorage.setItem('spw-card', c.id); } catch (e) {}
+}
+
+function check(revealed = false) {
+  const lis = [...elItems.querySelectorAll('.item')];
+  const sortedRanks = state.map(s => card.items[s.i][1]).sort((a, b) => a - b);
+  let ord = 0, w = 0, t = 0, n = state.length;
+  lis.forEach((li, k) => {
+    const s = state[k], it = card.items[s.i];
+    const okO = it[1] === sortedRanks[k];
+    li.classList.toggle('ord-ok', okO); li.classList.toggle('ord-bad', !okO);
+    const sw = li.querySelector('[data-kind="w"]'), st = li.querySelector('[data-kind="t"]');
+    const okW = it[2].includes(s.w), okT = it[3].includes(s.t);
+    sw.classList.toggle('ok', okW); sw.classList.toggle('bad', !okW);
+    st.classList.toggle('ok', okT); st.classList.toggle('bad', !okT);
+    ord += okO; w += okW; t += okT;
+  });
+  const all = ord === n && w === n && t === n;
+  if (all && !revealed) { solved.add(card.id); buildChips(); }
+  const r = $('#result');
+  r.className = 'result ' + (all ? 'good' : 'mid');
+  r.innerHTML = `<div><strong>${revealed ? 'Das ist die Lösung. Lies sie genau durch und klicke dann auf „Neu starten“, um es selbst zu versuchen.' : all ? 'Super, alles richtig! Jetzt kannst du den Bericht schreiben.' : 'Rot markierte Stellen noch einmal überprüfen.'}</strong></div>
+    <div class="score"><span>Reihenfolge: <strong>${ord} von ${n}</strong></span><span>W-Fragen: <strong>${w} von ${n}</strong></span><span>Teil: <strong>${t} von ${n}</strong></span></div>
+    ${all ? '' : '<div class="hint">Tipp: Einleitung = Wann, Wo, Wer, Was. Hauptteil = der Ablauf (Wie? Warum?). Schluss = die Folgen.</div>'}`;
+  r.hidden = false;
+}
+
+function solve() {
+  state = card.items.map((it, i) => ({ i, w: it[2][0], t: it[3][0] }))
+    .sort((a, b) => card.items[a.i][1] - card.items[b.i][1] || a.i - b.i);
+  render(); check(true);
+}
+
+function buildChips() {
+  const chip = c => `<button class="chip ${c.level || 'normal'}" type="button" data-id="${c.id}" aria-pressed="${card && card.id === c.id}"><b>${c.id}</b>${c.title}${solved.has(c.id) ? '<span class="done">✓</span>' : ''}</button>`;
+  const groups = [['leicht', 'leicht', 'Wenige Stichpunkte, einfache Sprache'], ['normal', 'schwerer', 'Viele Stichpunkte']];
+  $('#chips').innerHTML = groups.map(([lv, name, text]) => `<div class="chip-group" role="group" aria-label="${name}">
+    <div class="group-label"><span class="level ${lv}">${name}</span>${text}</div>
+    <div class="chips">${CARDS.filter(c => (c.level || 'normal') === lv).map(chip).join('')}</div></div>`).join('');
+}
+
+$('#chips').addEventListener('click', e => { const b = e.target.closest('.chip'); if (b) loadCard(CARDS.find(c => c.id === b.dataset.id)); });
+elItems.addEventListener('change', e => {
+  const sel = e.target.closest('select'); if (!sel) return;
+  const li = sel.closest('.item'); const s = state.find(x => x.i == li.dataset.i);
+  s[sel.dataset.kind] = sel.value;
+  if (sel.dataset.kind === 't') li.dataset.teil = sel.value;
+  clearMarks(); renderFrame();
+});
+elItems.addEventListener('click', e => {
+  const b = e.target.closest('.move button'); if (!b) return;
+  const li = b.closest('.item'); const dir = +b.dataset.dir;
+  if (dir < 0 && li.previousElementSibling) li.parentNode.insertBefore(li, li.previousElementSibling);
+  if (dir > 0 && li.nextElementSibling) li.parentNode.insertBefore(li.nextElementSibling, li);
+  syncFromDOM(); b.focus();
+});
+$('#check').addEventListener('click', () => check());
+$('#shuffle').addEventListener('click', () => loadCard(card));
+$('#solve').addEventListener('click', solve);
+
+// Ziehen mit Maus, Finger oder Stift (ohne externe Bibliothek).
+// Der Stichpunkt schwebt unter dem Zeiger mit; eine gestrichelte Lücke zeigt, wo er landet.
+// Die Ereignisse hängen am Fenster, damit das Ziehen beim Umsortieren nie abbricht.
+let drag = null;
+elItems.addEventListener('pointerdown', e => {
+  const h = e.target.closest('.handle'); if (!h || e.button > 0 || drag) return;
+  e.preventDefault();
+  const li = h.closest('.item');
+  const r = li.getBoundingClientRect();
+  const ph = document.createElement('li');
+  ph.className = 'placeholder';
+  ph.style.height = r.height + 'px';
+  li.parentNode.insertBefore(ph, li);
+  Object.assign(li.style, { position: 'fixed', left: r.left + 'px', top: r.top + 'px', width: r.width + 'px', margin: '0' });
+  li.classList.add('dragging');
+  drag = { li, ph, id: e.pointerId, dy: e.clientY - r.top, y: e.clientY, start: [...elItems.children].indexOf(ph), raf: 0 };
+  drag.raf = requestAnimationFrame(autoScroll);
+});
+function placeAt(y) {
+  drag.li.style.top = (y - drag.dy) + 'px';
+  let before = null;
+  for (const s of elItems.querySelectorAll('.item:not(.dragging)')) {
+    const r = s.getBoundingClientRect();
+    if (y < r.top + r.height / 2) { before = s; break; }
+  }
+  if (before !== drag.ph.nextElementSibling || (before === null && drag.ph !== elItems.lastElementChild)) {
+    elItems.insertBefore(drag.ph, before);
+  }
+}
+function autoScroll() {
+  if (!drag) return;
+  const edge = 80, y = drag.y, h = window.innerHeight;
+  let v = 0;
+  if (y < edge) v = -Math.ceil((edge - y) / 5);
+  else if (y > h - edge) v = Math.ceil((y - (h - edge)) / 5);
+  if (v) { window.scrollBy(0, v); placeAt(y); }
+  drag.raf = requestAnimationFrame(autoScroll);
+}
+window.addEventListener('pointermove', e => {
+  if (!drag || e.pointerId !== drag.id) return;
+  if (e.pointerType === 'mouse' && e.buttons === 0) { endDrag(e); return; }
+  e.preventDefault();
+  drag.y = e.clientY;
+  placeAt(e.clientY);
+}, { passive: false });
+function endDrag(e) {
+  if (!drag || (e && e.pointerId !== drag.id)) return;
+  const { li, ph, start, raf } = drag;
+  cancelAnimationFrame(raf);
+  const moved = [...elItems.children].indexOf(ph) !== start;
+  elItems.insertBefore(li, ph); ph.remove();
+  li.removeAttribute('style'); li.classList.remove('dragging');
+  drag = null;
+  if (moved) syncFromDOM();
+}
+window.addEventListener('pointerup', endDrag);
+window.addEventListener('pointercancel', endDrag);
+window.addEventListener('blur', () => endDrag());
+
+let start = CARDS[0];
+try { const id = localStorage.getItem('spw-card'); start = CARDS.find(c => c.id === id) || start; } catch (e) {}
+card = start; buildChips(); loadCard(start);
+</script>
